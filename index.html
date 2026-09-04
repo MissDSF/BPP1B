@@ -554,6 +554,89 @@
              null;
     }
 
+    function numberUnder100(n) {
+  const ones = [
+    "zero", "one", "two", "three", "four",
+    "five", "six", "seven", "eight", "nine",
+    "ten", "eleven", "twelve", "thirteen",
+    "fourteen", "fifteen", "sixteen",
+    "seventeen", "eighteen", "nineteen"
+  ];
+
+  const tens = [
+    "", "", "twenty", "thirty", "forty",
+    "fifty", "sixty", "seventy", "eighty", "ninety"
+  ];
+
+  if (n < 20) {
+    return ones[n];
+  }
+
+  const ten = Math.floor(n / 10);
+  const unit = n % 10;
+
+  if (unit === 0) {
+    return tens[ten];
+  }
+
+  return tens[ten] + " " + ones[unit];
+}
+
+
+function yearToSpeech(word) {
+
+  // Quita signos como coma o punto solamente para comprobar el número
+  const clean = word.replace(/[.,!?;:]/g, "");
+
+  // Si no es un número de 4 cifras, lo pronuncia normalmente
+  if (!/^\d{4}$/.test(clean)) {
+    return word;
+  }
+
+  const year = Number(clean);
+
+  // Años 1900-1999
+  // 1973 → nineteen seventy-three
+  if (year >= 1900 && year <= 1999) {
+
+    const lastTwo = year % 100;
+
+    if (lastTwo === 0) {
+      return "nineteen hundred";
+    }
+
+    if (lastTwo < 10) {
+      return "nineteen oh " + numberUnder100(lastTwo);
+    }
+
+    return "nineteen " + numberUnder100(lastTwo);
+  }
+
+  // Años 2000-2009
+  // 2005 → two thousand five
+  if (year >= 2000 && year <= 2009) {
+
+    const lastDigit = year - 2000;
+
+    if (lastDigit === 0) {
+      return "two thousand";
+    }
+
+    return "two thousand " + numberUnder100(lastDigit);
+  }
+
+  // Años 2010-2099
+  // 2013 → twenty thirteen
+  // 2021 → twenty twenty-one
+  if (year >= 2010 && year <= 2099) {
+
+    const lastTwo = year % 100;
+
+    return "twenty " + numberUnder100(lastTwo);
+  }
+
+  return word;
+}
     function speakWord(word, element) {
       if (!synth || !word) return;
 
@@ -563,7 +646,7 @@
       activeWord = element;
       activeWord.classList.add('is-speaking');
 
-      const utterance = new SpeechSynthesisUtterance(word);
+const utterance = new SpeechSynthesisUtterance(yearToSpeech(word));
       utterance.lang = 'en-US';
       utterance.rate = 0.82;
       utterance.pitch = 1;
