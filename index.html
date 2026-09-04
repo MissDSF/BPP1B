@@ -171,6 +171,43 @@
       margin: 0 0 18px;
     }
 
+    /* Pronunciación palabra por palabra */
+    .word-help {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--accent) 12%, white);
+      color: #344054;
+      font-size: .92rem;
+      font-weight: 700;
+    }
+
+    .speak-word {
+      display: inline;
+      padding: 2px 2px;
+      margin: 0 -1px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+    }
+
+    .speak-word:hover,
+    .speak-word:focus-visible {
+      background: color-mix(in srgb, var(--accent) 22%, white);
+      color: #111827;
+      outline: none;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 34%, white);
+    }
+
+    .speak-word.is-speaking {
+      background: var(--accent);
+      color: #fff;
+    }
+
+
     .members {
       margin: 0 0 20px;
       color: var(--muted);
@@ -314,6 +351,7 @@
           <span class="group-label">Group 1</span>
           <h3>Paul William Walker IV</h3>
           <p class="student-text">He was an American actor and philanthropist. He was born on September 12, 1973, in Glendale, California, USA. He was famous for playing Brian O'Conner in the Fast and Furious movies. He acted and modeled in the Fast and Furious movies. He died on November 30, 2013, in Santa Clarita, California, USA.</p>
+          <div class="word-help">🔊 Haz clic en cualquier palabra para escucharla.</div>
           <p class="members"><strong>Integrantes:</strong> Luis, Josefina, Francisca, Sofia, Alison.</p>
           <div class="audio-box">
             <strong>🎧 Pronunciation audio</strong>
@@ -341,6 +379,7 @@
           <span class="group-label">Group 1</span>
           <h3>Vicente Fernandez</h3>
           <p class="student-text">He was a famous singer. He was born on February 17, 1940, in Huentitan, El Alto, Jalisco. He was famous for his music and movies. He recorded songs and acted in movies. He died in Guadalajara, Jalisco, Mexico, on December 12, 2021.</p>
+          <div class="word-help">🔊 Haz clic en cualquier palabra para escucharla.</div>
           <p class="members"><strong>Integrantes:</strong> Mya, Daritza, Katalina, Maite.</p>
           <div class="audio-box">
             <strong>🎧 Pronunciation audio</strong>
@@ -367,6 +406,7 @@
         <div>
           <h3>Diego Armando Maradona</h3>
           <p class="student-text">Diego Armando Maradona was a famous ex-football player. He was born on October 30, 1960, in Buenos Aires, Argentina. He was famous because he was a professional football player. He played football. Diego Armando Maradona died on November 25, 2020, in Tigre, Buenos Aires, Argentina.</p>
+          <div class="word-help">🔊 Haz clic en cualquier palabra para escucharla.</div>
           <p class="members"><strong>Integrantes:</strong> Dyland I, Julian C, Danilo, Benjamin, Nicolás.</p>
           <div class="audio-box">
             <strong>🎧 Pronunciation audio</strong>
@@ -393,6 +433,7 @@
         <div>
           <h3>Bruce Lee</h3>
           <p class="student-text">He was born on November 27th, 1940, San Francisco California. He acted in The Big Boss and Fist of Fury. He practiced Wing Chun and Jeet Kune Do. He died in Kowloon, Hong Kong on July 20th 1973.</p>
+          <div class="word-help">🔊 Haz clic en cualquier palabra para escucharla.</div>
           <p class="members"><strong>Integrantes:</strong> Diego, Paulo, Matias Venenciano, José, Cristián.</p>
           <div class="audio-box">
             <strong>🎧 Pronunciation audio</strong>
@@ -420,6 +461,7 @@
           <span class="group-label">Group 2</span>
           <h3>Paul William Walker</h3>
           <p class="student-text">Paul William was an actor. He was born on July 12, 1978 in Glendale California. He was famous for his movies Fast and Furious. Paul Walker acted in Fast and Furious. He died on November 30, 2013, in Santa Clarita, California.</p>
+          <div class="word-help">🔊 Haz clic en cualquier palabra para escucharla.</div>
           <p class="members"><strong>Integrantes:</strong> Carlos, Edison, Julián F, Dylan.</p>
           <div class="audio-box">
             <strong>🎧 Pronunciation audio</strong>
@@ -447,6 +489,7 @@
           <span class="group-label">Group 2</span>
           <h3>Vicente Fernández</h3>
           <p class="student-text">Vicente Fernandez was a famous singer and actor. He was born on February 17, 1940, Huentitan, El Alto. He was famous for his music. He recorded music. He died on December 2021 in Guadalajara, Jalisco.</p>
+          <div class="word-help">🔊 Haz clic en cualquier palabra para escucharla.</div>
           <p class="members"><strong>Integrante:</strong> Daniel.</p>
           <div class="audio-box">
             <strong>🎧 Pronunciation audio</strong>
@@ -473,6 +516,7 @@
   </footer>
 
   <script>
+    // Control de velocidad para los audios completos subidos por la profesora.
     document.querySelectorAll('.speed-control').forEach(select => {
       const box = select.closest('.audio-box');
       const audio = box.querySelector('audio');
@@ -480,6 +524,97 @@
       select.addEventListener('change', () => {
         audio.playbackRate = Number(select.value);
       });
+    });
+
+    // Pronunciación automática palabra por palabra.
+    // Usa las voces del navegador/dispositivo y, cuando Chrome la ofrece,
+    // prefiere la voz "Google US English".
+    const synth = window.speechSynthesis;
+    let availableVoices = [];
+    let activeWord = null;
+
+    function refreshVoices() {
+      availableVoices = synth ? synth.getVoices() : [];
+    }
+
+    if (synth) {
+      refreshVoices();
+      if ('onvoiceschanged' in synth) {
+        synth.onvoiceschanged = refreshVoices;
+      }
+    }
+
+    function preferredEnglishVoice() {
+      if (!availableVoices.length) refreshVoices();
+
+      return availableVoices.find(v => /Google US English/i.test(v.name)) ||
+             availableVoices.find(v => /Google.*English/i.test(v.name) && /^en-US/i.test(v.lang)) ||
+             availableVoices.find(v => /^en-US/i.test(v.lang)) ||
+             availableVoices.find(v => /^en/i.test(v.lang)) ||
+             null;
+    }
+
+    function speakWord(word, element) {
+      if (!synth || !word) return;
+
+      synth.cancel();
+
+      if (activeWord) activeWord.classList.remove('is-speaking');
+      activeWord = element;
+      activeWord.classList.add('is-speaking');
+
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.82;
+      utterance.pitch = 1;
+
+      const voice = preferredEnglishVoice();
+      if (voice) utterance.voice = voice;
+
+      utterance.onend = () => {
+        if (activeWord === element) {
+          element.classList.remove('is-speaking');
+          activeWord = null;
+        }
+      };
+
+      utterance.onerror = () => {
+        element.classList.remove('is-speaking');
+        if (activeWord === element) activeWord = null;
+      };
+
+      synth.speak(utterance);
+    }
+
+    // Convierte automáticamente cada palabra de las biografías en una palabra clickeable.
+    document.querySelectorAll('.student-text').forEach(paragraph => {
+      const text = paragraph.textContent;
+      const tokens = text.match(/\s+|[A-Za-zÀ-ÿ0-9]+(?:['’\-][A-Za-zÀ-ÿ0-9]+)*|[^\sA-Za-zÀ-ÿ0-9]+/g) || [];
+      const fragment = document.createDocumentFragment();
+
+      tokens.forEach(token => {
+        if (/^[A-Za-zÀ-ÿ0-9]/.test(token)) {
+          const span = document.createElement('span');
+          span.className = 'speak-word';
+          span.textContent = token;
+          span.setAttribute('role', 'button');
+          span.setAttribute('tabindex', '0');
+          span.setAttribute('aria-label', `Escuchar pronunciación de ${token}`);
+          span.addEventListener('click', () => speakWord(token, span));
+          span.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              speakWord(token, span);
+            }
+          });
+          fragment.appendChild(span);
+        } else {
+          fragment.appendChild(document.createTextNode(token));
+        }
+      });
+
+      paragraph.textContent = '';
+      paragraph.appendChild(fragment);
     });
   </script>
 </body>
